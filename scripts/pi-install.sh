@@ -77,20 +77,19 @@ fi
 # fi
 
 # Sound configuration
-printf "%s{blu}Would you like to install and auto-configure sound and audio capture dependencies (reccomended)?${end}\n"
+printf "%s${blu}Would you like to install and auto-configure sound and audio capture dependencies (reccomended)?${end}\n"
 read -r -p "If you have an existing sound setup you can skip this [y/N] " response
 if [[ $response =~ ^([yY][eE][sS]|[yY])$ ]]; then
-    printf "%sExcellent! ${red}Please do not exit this script until it is complete.${end}\n"
     ## TODO: is pulseaudio-module-jack actually required?
     sudo apt-get install pulseaudio pulseaudio-module-zeroconf pulseaudio-module-jack
 fi
 
 # Install native dependencies
-printf "%s{blu}Installing native dependencies${end}\n"
+printf "%s${blu}Installing native dependencies${end}\n"
 sudo apt-get install curl wget git python-pyaudio python3-pyaudio sox unclutter
 
 # Check if we need to install or upgrade Node.js.
-printf "%s{blu}Checking current Node installation${end}\n"
+printf "%s${blu}Checking current Node installation${end}\n"
 NODE_INSTALL=false
 if command_exists node; then
 	NODE_CURRENT=$(node -v)
@@ -105,7 +104,7 @@ if command_exists node; then
 		    exit;
 		fi
         printf "%sLooks like you need an upgrade. Taking care of that for you.\n"
-
+	fi
 else
 	printf "%sNo Node installation found. Installing it for you.\n";
 	NODE_INSTALL=true
@@ -128,7 +127,7 @@ if [ -d "$HOME/smart-mirror" ]; then
 fi
 
 # Getting the code
-printf "%s\n{blu}Cloning smart-mirror Git Repo${end}\n"
+printf "%s\n${blu}Cloning smart-mirror Git Repo${end}\n"
 if sudo -u $SUDO_USER git clone https://github.com/evancohen/smart-mirror.git; then
     printf "%s\n${grn}smart-mirror code is now downloaded${end}\n"
 else
@@ -138,11 +137,11 @@ fi
 
 # Generate config and install dependencies
 cd ~/smart-mirror  || exit
-printf "%s{blu}generating config template${end}\n"
+printf "%s${blu}generating config template${end}\n"
 sudo -u $SUDO_USER cp config.example.js config.js
 
 # Install smart-mirror dependencies
-printf "%s\n{blu}Installing smart-mirror dependencies...${end}\n"
+printf "%s\n${blu}Installing smart-mirror dependencies...${end}\n"
 printf "%s${yel}This may take a while. Go grab a beer :)${end}\n"
 if sudo -u $SUDO_USER npm install; then 
 	printf "%s{grn}Dependency installation complete!${end}\n"
