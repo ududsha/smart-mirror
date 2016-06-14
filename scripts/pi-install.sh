@@ -94,7 +94,7 @@ NODE_INSTALL=false
 if command_exists node; then
 	NODE_CURRENT=$(node -v)
 	printf "%sMinimum Node version: $NODE_MINIMUM_VERSION\n"
-	printf "%sInstalled Node version: $NODE_CURRENT"
+	printf "%sInstalled Node version: $NODE_CURRENT\n"
 	if check_version $NODE_MINIMUM_VERSION $NODE_CURRENT; then
     	NODE_INSTALL=true
     	# If Node is already running then abort
@@ -112,7 +112,7 @@ fi
 # Upgrade node if it is out of date
 if $NODE_INSTALL; then
 	printf "%sInstalling Node...\n"
-	curl -sL https://deb.nodesource.com/setup_$NODE_STABLE_BRANCH | sudo -E bash -
+	curl -sL https://deb.nodesource.com/setup_$NODE_STABLE_VERSION | sudo -E bash -
 	sudo apt-get install -y nodejs
 	printf "%sNode installation complete.\n"
 fi
