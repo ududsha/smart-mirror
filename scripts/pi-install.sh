@@ -128,7 +128,7 @@ fi
 
 # Getting the code
 printf "%s\n${blu}Cloning smart-mirror Git Repo${end}\n"
-if sudo -u $SUDO_USER git clone https://github.com/evancohen/smart-mirror.git; then
+if git clone https://github.com/evancohen/smart-mirror.git; then
     printf "%s\n${grn}smart-mirror code is now downloaded${end}\n"
 else
     printf "%s${red}Unable to clone smart-mirror :( ${end}\n"
@@ -138,12 +138,12 @@ fi
 # Generate config and install dependencies
 cd ~/smart-mirror  || exit
 printf "%s${blu}generating config template${end}\n"
-sudo -u $SUDO_USER cp config.example.js config.js
+cp config.example.js config.js
 
 # Install smart-mirror dependencies
 printf "%s\n${blu}Installing smart-mirror dependencies...${end}\n"
 printf "%s${yel}This may take a while. Go grab a beer :)${end}\n"
-if sudo -u $SUDO_USER npm install; then 
+if npm install; then 
 	printf "%s{grn}Dependency installation complete!${end}\n"
 else
 	printf "%s${red}Unable to install dependencies :( ${end}\n"
