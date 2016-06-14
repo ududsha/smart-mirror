@@ -77,19 +77,20 @@ fi
 # fi
 
 # Sound configuration
-printf "%s${blu}Would you like to install and auto-configure sound and audio capture dependencies (reccomended)?${end}\n"
+printf "%s\n${blu}Would you like to install and auto-configure sound and audio capture dependencies (reccomended)?${end}\n"
 read -r -p "If you have an existing sound setup you can skip this [y/N] " response
 if [[ $response =~ ^([yY][eE][sS]|[yY])$ ]]; then
     ## TODO: is pulseaudio-module-jack actually required?
+	printf "%s\n${blu}Installing audio dependencies${end}\n"
     sudo apt-get install pulseaudio pulseaudio-module-zeroconf pulseaudio-module-jack
 fi
 
 # Install native dependencies
-printf "%s${blu}Installing native dependencies${end}\n"
+printf "%s\n${blu}Installing non-audio native dependencies${end}\n"
 sudo apt-get install curl wget git python-pyaudio python3-pyaudio sox unclutter
 
 # Check if we need to install or upgrade Node.js.
-printf "%s${blu}Checking current Node installation${end}\n"
+printf "%s\n${blu}Checking current Node installation${end}\n"
 NODE_INSTALL=false
 if command_exists node; then
 	NODE_CURRENT=$(node -v)
@@ -118,7 +119,7 @@ if $NODE_INSTALL; then
 fi
 
 #Install magic mirror
-cd ~
+cd /home/"$SUDO_USER"
 if [ -d "$HOME/smart-mirror" ]; then
 	printf "%s${red}Looks like the smart mirror is already installed.${end}\n"
 	printf "%sPlease rename or remove the ${mag}smart-mirror${end} folder and re-run the installer.\n"
@@ -128,23 +129,23 @@ fi
 
 # Getting the code
 printf "%s\n${blu}Cloning smart-mirror Git Repo${end}\n"
-if git clone https://github.com/evancohen/smart-mirror.git; then
-    printf "%s\n${grn}smart-mirror code is now downloaded${end}\n"
+if sudo -u "$SUDO_USER" git clone https://github.com/evancohen/smart-mirror.git; then
+    printf "%s${grn}smart-mirror code is now downloaded${end}\n"
 else
     printf "%s${red}Unable to clone smart-mirror :( ${end}\n"
     exit;
 fi
 
 # Generate config and install dependencies
-cd ~/smart-mirror  || exit
-printf "%s${blu}generating config template${end}\n"
-cp config.example.js config.js
+cd smart-mirror  || exit
+printf "%s\n${blu}generating config template...${end}\n"
+sudo -u "$SUDO_USER" cp config.example.js config.js
 
 # Install smart-mirror dependencies
 printf "%s\n${blu}Installing smart-mirror dependencies...${end}\n"
 printf "%s${yel}This may take a while. Go grab a beer :)${end}\n"
-if npm install; then 
-	printf "%s{grn}Dependency installation complete!${end}\n"
+if sudo -u "$SUDO_USER" npm install; then 
+	printf "%s${grn}Dependency installation complete!${end}\n"
 else
 	printf "%s${red}Unable to install dependencies :( ${end}\n"
 	exit;
@@ -159,14 +160,14 @@ unclutter -idle 0.1 -root' /etc/xdg/lxsession/LXDE/autostart
 fi
 
 # Disable the screensaver (if we haven't already)
-if ! grep -q '(smart-mirror)' ~/.config/lxsession/LXDE-pi/autostart; then
+if ! grep -q '(smart-mirror)' /home/"$SUDO_USER"/.config/lxsession/LXDE-pi/autostart; then
     sed -i -e '$a\
 \
 #Disable screen saver (smart-mirror)\
 @xset s 0 0\
 @xset s noblank\
 @xset s noexpose\
-@xset dpms 0 0 0' ~/.config/lxsession/LXDE-pi/autostart
+@xset dpms 0 0 0' /home/"$SUDO_USER"/.config/lxsession/LXDE-pi/autostart
 fi
 
 
@@ -176,12 +177,12 @@ cat << "EOF"
         |        The smart-mirror is now installed!
        / \       
       / _ \      Once you fill out your config you can start the mirror with:
-     |.o '.|     npm start
+     |.o '.|     > npm start
      |'._.'|     Or if you are running over SSH:
-     |     |     DISPLAY=:0 npm start
+     |     |     > DISPLAY=:0 npm start
    ,'|  |  |`.   
   /  |  |  |  \  To lean more, check out the documentation at:
-  |,-'--|--'-.|  docs.smart-mirror.io
+  |,-'--|--'-.|  http://docs.smart-mirror.io
   
 EOF
 # ASCII art found on http://textart.io/
