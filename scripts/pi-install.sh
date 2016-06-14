@@ -8,7 +8,7 @@ NODE_MINIMUM_VERSION="v4.0.0"
 NODE_STABLE_VERSION="6.x"
 
 # Compare node versions.
-function check_version() {test "$(echo "$@" | tr " " "\n" | sort -V | head -n 1)" != "$1";}
+function check_version() { test "$(echo "$@" | tr " " "\n" | sort -V | head -n 1)" != "$1"; }
 # Check to see if a command exists (if something is installed)
 function command_exists () { type "$1" &> /dev/null ;}
 
