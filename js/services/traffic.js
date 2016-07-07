@@ -9,7 +9,7 @@
             var deferred = $q.defer();
             var promises = [];
 
-            if(typeof config.traffic != 'undefined' && config.traffic.trips != 'undefined'){                
+            if(typeof config.traffic !== 'undefined' && config.traffic.key.length > 0){                
                 angular.forEach(config.traffic.trips, function(trip) {
                     if (trip.hasOwnProperty('startTime') && TimeboxService.shouldDisplay(trip.startTime, trip.endTime)
                         || !trip.hasOwnProperty('startTime')) {

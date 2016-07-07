@@ -114,7 +114,7 @@
                 FitbitService.profileSummary(function(response){
                     $scope.fbDailyAverage = response;
                 });
-                
+
                 FitbitService.todaySummary(function(response){
                     $scope.fbToday = response;
                 });
@@ -136,30 +136,32 @@
                 //Get our location and then get the weather for our location
                 GeolocationService.getLocation({enableHighAccuracy: true}).then(function(geoposition){
                     console.log("Geoposition", geoposition);
-                    WeatherService.init(geoposition).then(function(){
-                        $scope.currentForecast = WeatherService.currentForecast();
-                        $scope.weeklyForecast = WeatherService.weeklyForecast();
-                        $scope.hourlyForecast = WeatherService.hourlyForecast();
-                        $scope.minutelyForecast = WeatherService.minutelyForecast();
-                        console.log("Current", $scope.currentForecast);
-                        console.log("Weekly", $scope.weeklyForecast);
-                        console.log("Hourly", $scope.hourlyForecast);
-                        console.log("Minutely", $scope.minutelyForecast);
+                    var result = WeatherService.init(geoposition)
+                    if (typeof result !== 'undefined') {
+                      result.then(function(){
+                          $scope.currentForecast = WeatherService.currentForecast();
+                          $scope.weeklyForecast = WeatherService.weeklyForecast();
+                          $scope.hourlyForecast = WeatherService.hourlyForecast();
+                          $scope.minutelyForecast = WeatherService.minutelyForecast();
+                          console.log("Current", $scope.currentForecast);
+                          console.log("Weekly", $scope.weeklyForecast);
+                          console.log("Hourly", $scope.hourlyForecast);
+                          console.log("Minutely", $scope.minutelyForecast);
 
-                        var skycons = new Skycons({"color": "#aaa"});
-                        skycons.add("icon_weather_current", $scope.currentForecast.iconAnimation);
+                          var skycons = new Skycons({"color": "#aaa"});
+                          skycons.add("icon_weather_current", $scope.currentForecast.iconAnimation);
 
-                        skycons.play();
+                          skycons.play();
 
-                        $scope.iconLoad = function (elementId, iconAnimation){
-                            skycons.add(document.getElementById(elementId), iconAnimation);
-                            skycons.play();
-                        };
-
+                          $scope.iconLoad = function (elementId, iconAnimation){
+                              skycons.add(document.getElementById(elementId), iconAnimation);
+                              skycons.play();
+                          };
+                        }, function(error){
+                          console.log(error);
+                        });
+                      }
                     });
-                }, function(error){
-                    console.log(error);
-                });
             };
 
             if(typeof config.forecast !== 'undefined'){
