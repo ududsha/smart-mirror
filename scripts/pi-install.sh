@@ -1,10 +1,9 @@
 #!/bin/bash
 
-# Any subsequent(*) commands which fail will cause the shell script to exit immediately
 set -e
 
 # Supported versions of node: v4.x, v5.x
-NODE_MINIMUM_VERSION="v4.0.0"
+NODE_MINIMUM_VERSION="v6.0.0"
 NODE_STABLE_VERSION="6.x"
 
 # Compare node versions.
@@ -22,9 +21,9 @@ cyn=$'\e[1;36m'
 end=$'\e[0m'
 
 # Ensure we are using sudo
-if [ "$(whoami)" != "root" ];
+if [ "$(whoami)" == "root" ];
 then
-	echo "This script requires root permissions, try: sudo ./${0##*/} "
+	echo "Do not run this script with root permissions, try: ./${0##*/} "
 	exit 0
 fi
 
@@ -50,20 +49,13 @@ EOF
 
 ARCH=$(uname -m) 
 # Check processor archetecture.
-if [$ARCH != "armv7l" ]; then
+if [ "$ARCH" != "armv7l" ]; then
 	printf "%s${red} Unupported device!${end} The smart-mirror only works on the Pi 2 and 3"
 	exit;
 fi
 
 printf "%sThis script will install the smart-mirror and it's dependencies.\n"
-
-# Ensure the use would like to start the install
-read -r -p "Would you like to continue? [y/N] " response
-if [[ $response =~ ^([yY][eE][sS]|[yY])$ ]]; then
-    printf "%sExcellent! ${red}Please do not exit this script until it is complete.${end}\n"
-else
-    exit 1
-fi
+printf "%s${red}Please do not exit this script until it is complete.${end}\n"
 
 # # Rotate the monitor
 # printf "%s\n"
@@ -78,7 +70,7 @@ fi
 
 # Install native dependencies
 printf "%s\n${blu}Installing native dependencies${end}\n"
-sudo apt-get install curl wget git python-pyaudio python3-pyaudio sox unclutter
+sudo apt-get install -y curl wget git sox unclutter libatlas-base-dev
 
 # Check if we need to install or upgrade Node.js.
 printf "%s\n${blu}Checking current Node installation${end}\n"
@@ -110,7 +102,7 @@ if $NODE_INSTALL; then
 fi
 
 #Install magic mirror
-cd /home/"$SUDO_USER"
+cd ~
 if [ -d "$HOME/smart-mirror" ]; then
 	printf "%s${red}Looks like the smart mirror is already installed.${end}\n"
 	printf "%sPlease rename or remove the ${mag}smart-mirror${end} folder and re-run the installer.\n"
@@ -120,22 +112,18 @@ fi
 
 # Getting the code
 printf "%s\n${blu}Cloning smart-mirror Git Repo${end}\n"
-if sudo -u "$SUDO_USER" git clone https://github.com/evancohen/smart-mirror.git; then
+if git clone https://github.com/evancohen/smart-mirror.git; then
     printf "%s${grn}smart-mirror code is now downloaded${end}\n"
 else
     printf "%s${red}Unable to clone smart-mirror :( ${end}\n"
     exit;
 fi
 
-# Generate config and install dependencies
-cd smart-mirror  || exit
-printf "%s\n${blu}generating config template...${end}\n"
-sudo -u "$SUDO_USER" cp config.example.js config.js
-
 # Install smart-mirror dependencies
 printf "%s\n${blu}Installing smart-mirror dependencies...${end}\n"
 printf "%s${yel}This may take a while. Go grab a beer :)${end}\n"
-if sudo -u "$SUDO_USER" npm install; then 
+cd smart-mirror  || exit
+if npm install; then 
 	printf "%s${grn}Dependency installation complete!${end}\n"
 else
 	printf "%s${red}Unable to install dependencies :( ${end}\n"
@@ -143,37 +131,42 @@ else
 fi
 
 # Apply LXDE unclutter autostart (if we haven't already)
-if ! grep -q '(smart-mirror)' /etc/xdg/lxsession/LXDE/autostart; then
-    sed -i -e '$a\
+if ! sudo grep -q '(smart-mirror)' /etc/xdg/lxsession/LXDE/autostart; then
+    sudo sed -i -e '$a\
 \
 #Hide the mouse when inactive (smart-mirror)\
 unclutter -idle 0.1 -root' /etc/xdg/lxsession/LXDE/autostart
 fi
 
 # Disable the screensaver (if we haven't already)
-if ! grep -q '(smart-mirror)' /home/"$SUDO_USER"/.config/lxsession/LXDE-pi/autostart; then
+if ! grep -q '(smart-mirror)' ~/.config/lxsession/LXDE-pi/autostart; then
     sed -i -e '$a\
 \
 #Disable screen saver (smart-mirror)\
 @xset s 0 0\
 @xset s noblank\
 @xset s noexpose\
-@xset dpms 0 0 0' /home/"$SUDO_USER"/.config/lxsession/LXDE-pi/autostart
+@xset dpms 0 0 0' ~/.config/lxsession/LXDE-pi/autostart
 fi
 
+# Add start commands in the user's bashrc.
+echo "export MIRROR_HOME=~/smart-mirror" >> ~/.bashrc
+echo "run_mirror () { ( cd \$MIRROR_HOME && DISPLAY=:0 npm run \"\$@\" ); }" >> ~/.bashrc
+echo "alias mirror=run_mirror" >> ~/.bashrc
+cd ~ && source .bashrc
 
 # The mirror is now installed, yay!
 cat << "EOF"
 
         |        The smart-mirror is now installed!
-       / \       
-      / _ \      Once you fill out your config you can start the mirror with:
-     |.o '.|     > npm start
-     |'._.'|     Or if you are running over SSH:
-     |     |     > DISPLAY=:0 npm start
-   ,'|  |  |`.   
-  /  |  |  |  \  To lean more, check out the documentation at:
-  |,-'--|--'-.|  http://docs.smart-mirror.io
+       / \
+      / _ \      To configure audio input, speech, and the mirror itself, please visit:
+     |.o '.|     http://docs.smart-mirror.io
+     |'._.'|
+     |     |     To start your mirror:
+   ,'|  |  |`.   > mirror start
+  /  |  |  |  \
+  |,-'--|--'-.|
   
 EOF
 # ASCII art found on http://textart.io/
